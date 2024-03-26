@@ -57,55 +57,60 @@ class TaskController extends BaseController
      
     public function show($type)
     {
-        switch($type)
-        {
-            case 'a' :
-                 // Retrieve all tasks from the database
-        $tasks = Task::all();
 
-        return $this->sendResponse($tasks, 'Tasks retrieved successfully.');
-        break;
-
-        case 'c' :
-
-             // Retrieve completed tasks from the database
-        $completedTasks = Task::where('status', 'Completed')->get();
-
-        // Return JSON response with the completed tasks
-        return $this->sendResponse($completedTasks, 'Completed tasks retrieved successfully.');
-
+        try{
+            switch($type)
+            {
+                case 'a' :
+                     // Retrieve all tasks from the database
+            $tasks = Task::all();
+    
+            return $this->sendResponse($tasks, 'Tasks retrieved successfully.');
             break;
+    
+            case 'c' :
+    
+                 // Retrieve completed tasks from the database
+            $completedTasks = Task::where('status', 'Completed')->get();
+    
+            // Return JSON response with the completed tasks
+            return $this->sendResponse($completedTasks, 'Completed tasks retrieved successfully.');
+    
+                break;
+    
+             case 'p' :
+    
+                 // Retrieve tasks that are in progress or pending from the database
+            $inProgressAndPendingTasks = Task::whereIn('status', ['In Progress', 'Pending'])->get();
+    
+            // Return JSON response with the in-progress and pending tasks
+            return $this->sendResponse($inProgressAndPendingTasks, 'In-progress and pending tasks retrieved successfully.');
+                
+                break;
+    
+            }
 
-         case 'p' :
-
-             // Retrieve tasks that are in progress or pending from the database
-        $inProgressAndPendingTasks = Task::whereIn('status', ['In Progress', 'Pending'])->get();
-
-        // Return JSON response with the in-progress and pending tasks
-        return $this->sendResponse($inProgressAndPendingTasks, 'In-progress and pending tasks retrieved successfully.');
-            
-            break;
+        }
+        catch(\Exception $e) {
+           
+            return $this->sendError($e->getMessage()); // HTTP status code 500 for server error
 
         }
        
-    }
-
-    public function showC()
-    {
        
     }
 
-    public function showD()
-    {
-       
-    }
+  
 
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
-        // Validate the incoming request data
+
+        try{
+
+             // Validate the incoming request data
         $request->validate([
             'task_name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -128,6 +133,15 @@ class TaskController extends BaseController
 
         // Return a success response
         return $this->sendResponse($task, 'Task updated successfully.');
+
+        }
+        catch(\Exception $e) {
+           
+            return $this->sendError($e->getMessage()); // HTTP status code 500 for server error
+
+        }
+       
+
     }
 
     /**
@@ -135,7 +149,8 @@ class TaskController extends BaseController
      */
     public function destroy(string $id)
     {
-        // Find the task by its ID
+        try{
+             // Find the task by its ID
         $task = Task::findOrFail($id);
 
         // Delete the task
@@ -143,23 +158,41 @@ class TaskController extends BaseController
 
         // Return a success response
         return $this->sendResponse(null, 'Task deleted successfully.');
+
+        }
+        catch(\Exception $e) {
+           
+            return $this->sendError($e->getMessage()); // HTTP status code 500 for server error
+
+        }
+       
     }
 
     public function chartData()
     {
-        $total = Task::count();
-        $pending = Task::whereIn('status', ['In Progress', 'Pending'])->count();
-        $completed = Task::where('status', 'Completed')->count();
-    
-        // Create an associative array with the task data
+
+        try{
+            $total = Task::count();
+            $pending = Task::whereIn('status', ['In Progress', 'Pending'])->count();
+            $completed = Task::where('status', 'Completed')->count();
+
+             // Create an associative array with the task data
         $taskData = [
             'total' => $total,
             'pending' => $pending,
             'completed' => $completed
         ];
-    
-        // Return the task data as JSON response
-        return response()->json($taskData);
+
+        return $this->sendResponse($taskData, 'Chart Details.');
+
+
+        }catch (\Exception $e) {
+           
+            return $this->sendError($e->getMessage()); // HTTP status code 500 for server error
+
+        }
+
+
     }
     
 }
